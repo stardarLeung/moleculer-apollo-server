@@ -440,7 +440,7 @@ module.exports = function(mixinOptions) {
 				}
 			},
 
-			prepareGraphQLSchema() {
+			async prepareGraphQLSchema() {
 				// Schema is up-to-date
 				if (!this.shouldUpdateGraphqlSchema && this.graphqlHandler) {
 					return;
@@ -450,6 +450,10 @@ module.exports = function(mixinOptions) {
 				this.logger.info(
 					"♻ Recreate Apollo GraphQL server and regenerate GraphQL schema..."
 				);
+
+				if (this.apolloServer) {
+					await this.apolloServer.stop();
+				}
 
 				try {
 					this.pubsub = new PubSub();
@@ -577,17 +581,17 @@ module.exports = function(mixinOptions) {
 
 			const route = _.defaultsDeep(mixinOptions.routeOptions, {
 				aliases: {
-					"/"(req, res) {
+					async "/"(req, res) {
 						try {
-							this.prepareGraphQLSchema();
+							await this.prepareGraphQLSchema();
 							return this.graphqlHandler(req, res);
 						} catch (err) {
 							this.sendError(req, res, err);
 						}
 					},
-					"GET /.well-known/apollo/server-health"(req, res) {
+					async "/.well-known/apollo/server-health"(req, res) {
 						try {
-							this.prepareGraphQLSchema();
+							await this.prepareGraphQLSchema();
 						} catch (err) {
 							res.statusCode = 503;
 							return this.sendResponse(
@@ -625,8 +629,8 @@ module.exports = function(mixinOptions) {
 					query: { type: "string" },
 					variables: { type: "object", optional: true },
 				},
-				handler(ctx) {
-					this.prepareGraphQLSchema();
+				async handler(ctx) {
+					await this.prepareGraphQLSchema();
 					return GraphQL.graphql(
 						this.graphqlSchema,
 						ctx.params.query,
