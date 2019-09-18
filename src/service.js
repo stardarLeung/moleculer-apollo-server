@@ -620,6 +620,11 @@ module.exports = function(mixinOptions) {
 		started() {
 			this.logger.info(`🚀 GraphQL server is available at ${mixinOptions.routeOptions.path}`);
 		},
+		async stopped() {
+			if (this.apolloServer) {
+				await this.apolloServer.stop();
+			}
+		},
 	};
 
 	if (mixinOptions.createAction) {
