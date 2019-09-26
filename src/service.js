@@ -468,22 +468,28 @@ module.exports = function(mixinOptions) {
 						schema,
 						..._.defaultsDeep({}, mixinOptions.serverOptions, {
 							context: ({ req, connection }) => {
-								return req
-									? {
-											ctx: req.$ctx,
-											service: req.$service,
-											params: req.$params,
-											loaders: this.createLoaders(req, services),
-									  }
-									: {
-											service: connection.$service,
-									  };
+								const ctx = req
+									? req.$ctx
+									: this.broker.ContextFactory.create(this.broker);
+								const service = req ? req.$service : this;
+								const params = req ? req.$params : {};
+								const connectionParams = req
+									? req.headers
+									: connection.context.connectionParams;
+								return {
+									ctx,
+									service,
+									params,
+									connectionParams,
+									loaders: this.createLoaders(ctx, services),
+								};
 							},
 							subscriptions: {
-								onConnect: connectionParams => ({
-									...connectionParams,
-									$service: this,
-								}),
+								onConnect(connectionParams) {
+									return {
+										connectionParams,
+									};
+								},
 							},
 						}),
 					});
@@ -507,11 +513,11 @@ module.exports = function(mixinOptions) {
 
 			/**
 			 * Create the DataLoader instances to be used for batch resolution
-			 * @param {Object} req
+			 * @param {Object} ctx
 			 * @param {Object[]} services
 			 * @returns {Object.<string, Object>} Key/value pairs of DataLoader instances
 			 */
-			createLoaders(req, services) {
+			createLoaders(ctx, services) {
 				return services.reduce((serviceAccum, service) => {
 					const serviceName = this.getServiceName(service);
 
@@ -540,7 +546,7 @@ module.exports = function(mixinOptions) {
 													// create a new DataLoader instance
 													fieldAccum[resolverActionName] = new DataLoader(
 														keys =>
-															req.$ctx.call(
+															ctx.call(
 																resolverActionName,
 																_.defaultsDeep(
 																	{
