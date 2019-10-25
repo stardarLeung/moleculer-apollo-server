@@ -567,6 +567,7 @@ module.exports = function(mixinOptions) {
 												dataLoader = false,
 												params = {},
 												rootParams = {},
+												metaParams = {},
 											} = resolver;
 											const actionParam = Object.values(rootParams)[0]; // use the first root parameter
 											if (dataLoader && actionParam) {
@@ -584,7 +585,19 @@ module.exports = function(mixinOptions) {
 																	{
 																		[actionParam]: keys,
 																	},
-																	params
+																	params,
+																	_.reduce(
+																		metaParams,
+																		(acc, v, k) => {
+																			_.set(
+																				acc,
+																				v,
+																				_.get(ctx.meta, k)
+																			);
+																			return acc;
+																		},
+																		{}
+																	)
 																)
 															)
 													);
