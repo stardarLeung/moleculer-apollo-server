@@ -139,9 +139,7 @@ module.exports = function(mixinOptions) {
 				const rootKeys = Object.keys(rootParams);
 				const argKeys = Object.keys(argParams);
 
-				const firstMetaKey = metaKeys[0];
 				const firstRootKey = rootKeys[0];
-				const firstArgKey = argKeys[0];
 
 				return async (root, args, context) => {
 					const meta = context.ctx.meta;
@@ -150,12 +148,8 @@ module.exports = function(mixinOptions) {
 						if (dataLoader) {
 							let value;
 
-							if (firstArgKey) {
-								value = _.get(args, firstArgKey);
-							} else if (firstRootKey) {
+							if (firstRootKey) {
 								value = root && _.get(root, firstRootKey);
-							} else if (firstMetaKey) {
-								value = meta && _.get(meta, firstMetaKey);
 							}
 
 							if (value == null) {
@@ -604,7 +598,6 @@ module.exports = function(mixinOptions) {
 												}
 											}
 										}
-
 										return fieldAccum;
 									},
 									{}
