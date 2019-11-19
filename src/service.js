@@ -24,6 +24,7 @@ module.exports = function(mixinOptions) {
 		pubsubFactory() {
 			return new PubSub();
 		},
+		onlyIncludeCurrentService: false,
 		createAction: true,
 		subscriptionEventName: "graphql.publish",
 	});
@@ -483,7 +484,10 @@ module.exports = function(mixinOptions) {
 
 				try {
 					this.pubsub = mixinOptions.pubsubFactory();
-					const services = this.broker.registry.getServiceList({ withActions: true });
+					let services = this.broker.registry.getServiceList({ withActions: true });
+					if (mixinOptions.onlyIncludeCurrentService) {
+						services = services.filter((s) => s.name === this.name)
+					}
 					const schema = this.generateGraphQLSchema(services);
 
 					this.logger.debug(
