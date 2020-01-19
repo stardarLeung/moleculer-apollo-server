@@ -206,6 +206,8 @@ module.exports = function(mixinOptions) {
 			 * @param {String?} filter
 			 */
 			createAsyncIteratorResolver(actionName, tags = [], filter) {
+				console.log('createAsyncIteratorResolver')
+				console.log(params)
 				return {
 					subscribe: filter
 						? withFilter(
